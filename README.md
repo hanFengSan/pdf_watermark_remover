@@ -1,118 +1,41 @@
 中文版：[Link](https://github.com/hanFengSan/pdf_watermark_remover/blob/main/README_CN.md)
-
 # PDF Watermark Remover
 
-A local CLI tool that removes repeated text-like watermarks from PDF files by rendering pages to images, applying watermark suppression heuristics, and rebuilding a cleaned PDF.
+A local tool that renders PDF pages into images, performs watermark suppression and readability restoration, and finally reconstructs a black-and-white output PDF. The current processing pipeline is specifically optimized for text-based PDFs.
 
-## Highlights
+## Usage Guide
 
-- No external Poppler dependency (`pdftoppm` removed).
-- Uses `go-pdfium` in WebAssembly mode (no CGO required).
-- Cross-platform build support (including Windows `.exe`).
-- Supports single-file mode and batch mode.
-- Batch mode excludes files containing `remove_watermark` in filename.
-- Progress logs include per-file prefixes, e.g. `[1/10 sample.pdf] ...`.
+1. Place the executable file (`.exe`) and the PDF(s) to be processed in the same directory.
+   - **Note:** Files containing `remove_watermark` in their filenames will be automatically skipped.
+2. Run the program (processing 100 pages takes approximately 3 minutes, depending on hardware configuration and document complexity).
+3. Check the current directory for the output results.
+4. **Other Usage:**
+   - Specify a single PDF via command line: `pdf_watermark_remover xx/path/xxx.pdf`
+   - The output file will be generated in the same directory as the source PDF.
 
-## How It Works
+## Processing Pipeline
 
 1. Validate input PDF.
-2. Render each page to PNG (400 DPI by default).
-3. Estimate watermark pattern and page suppression strategy.
-4. Suppress watermark + binarize + readability cleanup.
-5. Retry selected pages if residual artifacts are detected.
-6. Rebuild final PDF from processed images.
+2. Render each page as a PNG image (default 400 DPI).
+3. Estimate watermark patterns and select suppression strategies.
+4. Execute watermark suppression, binarization, and readability cleanup.
+5. Apply retry strategies for pages with significant ghosting/artifacts.
+6. Reconstruct the processed images into the output PDF.
 
 ## Build
 
-Requirements:
+**Prerequisites:**
 
 - Go 1.25+
 
-Build current platform binary:
+**Build for current platform:**
 
 ```bash
 go build -o pdf_watermark_remover ./cmd/pdf_watermark_remover
 ```
 
-Build Windows amd64 executable:
+**Build for Windows amd64:**
 
 ```bash
 GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o dist/pdf_watermark_remover_windows_amd64.exe ./cmd/pdf_watermark_remover
 ```
-
-## Usage
-
-### 1) Single file mode
-
-```bash
-./pdf_watermark_remover /path/to/input.pdf
-```
-
-Output file naming:
-
-- `input_remove_watermark.pdf`
-- If exists: `input_remove_watermark_1.pdf`, `input_remove_watermark_2.pdf`, ...
-
-### 2) Batch mode (no arguments)
-
-```bash
-./pdf_watermark_remover
-```
-
-Behavior:
-
-- Scans the executable directory (non-recursive) for `*.pdf`.
-- Excludes files containing `remove_watermark` in filename.
-- Prompts for confirmation (`y/yes` to proceed).
-- Processes files sequentially.
-- Prints total elapsed time after all files are done.
-- Waits for Enter before exit.
-
-## Environment Variables
-
-Watermark / debug:
-
-- `WM_MODE=single|hybrid` (default: `single`)
-- `WM_DEBUG_PAGE=1` (prints fallback diagnostics)
-- `WM_DEBUG_MASK=1` (writes debug masks to temp work dir)
-
-Render parallelism:
-
-- `WM_RENDER_WORKERS=<n>`
-  - Explicit render worker count (clamped to CPU cores).
-- `WM_RENDER_CPU_TARGET=<10-100>`
-  - Used when `WM_RENDER_WORKERS` is not set.
-
-Process parallelism:
-
-- `WM_PROCESS_WORKER=<n>`
-  - Page processing worker count.
-  - If not set, defaults to `4` on machines with >= 4 cores.
-
-## Tests
-
-Run all tests:
-
-```bash
-go test ./...
-```
-
-Focused suites:
-
-```bash
-go test ./tests/contract -run TestCLI
-go test ./tests/integration -run TestUS1
-go test ./tests/integration -run TestUS2
-go test ./tests/integration -run TestUS3
-go test ./tests/unit
-```
-
-## Notes
-
-- This is an image-based pipeline; vector/text semantics are not preserved.
-- Quality depends on watermark style and heuristics.
-- For large PDFs, tune worker counts to balance speed and memory usage.
-
-## Project Homepage
-
-https://github.com/hanFengSan/pdf_watermark_remover
