@@ -1,0 +1,27 @@
+# Go artifacts
+*.exe
+*.test
+*.out
+vendor/
+
+# Build outputs
+bin/
+dist/
+build/
+
+# Temp/runtime files
+tmp/
+*.tmp
+
+# Logs and env
+*.log
+.env*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+test
