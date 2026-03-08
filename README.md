@@ -1,3 +1,5 @@
+中文版：[Link](https://github.com/hanFengSan/pdf_watermark_remover/blob/main/README_CN.md)
+
 # PDF Watermark Remover
 
 A local CLI tool that removes repeated text-like watermarks from PDF files by rendering pages to images, applying watermark suppression heuristics, and rebuilding a cleaned PDF.
